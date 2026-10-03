@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FAH Companion</title>
+  <meta name="description" content="Suit en direct ou hors ligne les projets Folding@home, depuis Android." />
+  <meta name="theme-color" content="#28AA46" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div class="install-banner" id="install-banner">
+      <span>Installer FAH Companion sur cet appareil ?</span>
+      <button id="install-btn">Installer</button>
+    </div>
+
+    <header>
+      <h1>🧬 FAH Companion</h1>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="live">🔴 Direct</button>
+        <button class="tab-btn" data-tab="import">📂 Import fichier</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- ================= ONGLET DIRECT ================= -->
+      <section id="tab-live" class="tab-panel">
+        <div class="card">
+          <div class="live-status-row">
+            <div>
+              <strong id="live-status-text">Jamais vérifié</strong>
+              <div class="subtitle" id="live-sub-text">
+                Touche « Vérifier » pour interroger l'API officielle.
+              </div>
+            </div>
+            <span class="dot" id="live-dot"></span>
+          </div>
+          <div class="file-row">
+            <button class="btn" id="live-check-btn">🔄 Vérifier maintenant</button>
+            <button class="btn secondary" id="live-settings-btn">⚙ Serveurs</button>
+          </div>
+          <label class="switch-row">
+            <input type="checkbox" id="live-auto-toggle" />
+            <span>Actualisation auto toutes les
+              <select id="live-interval">
+                <option value="5">5</option>
+                <option value="15" selected>15</option>
+                <option value="30">30</option>
+                <option value="60">60</option>
+              </select>
+              minutes (app ouverte)
+            </span>
+          </label>
+          <div class="subtitle" id="notif-permission-row" hidden>
+            <button class="btn secondary" id="notif-permission-btn">🔔 Activer les notifications</button>
+          </div>
+        </div>
+
+        <div id="live-settings-card" class="card" hidden>
+          <strong>Serveurs d'assignation</strong>
+          <div class="subtitle">
+            Un par ligne, domaine *.foldingathome.org uniquement.
+            L'app ne peut pas interroger la liste officielle depuis Android
+            (restriction CORS) : cette liste est donc fixe, à mettre à jour
+            toi-même si Folding@home en ouvre d'autres.
+          </div>
+          <textarea id="live-servers-input" rows="4"></textarea>
+          <div class="file-row">
+            <button class="btn" id="live-servers-save">Enregistrer</button>
+            <button class="btn secondary" id="live-servers-reset">Réinitialiser</button>
+          </div>
+        </div>
+
+        <div id="live-stats-card" class="card" hidden>
+          <strong>Résumé</strong>
+          <div class="stats-grid" id="live-stats-grid"></div>
+        </div>
+
+        <div id="live-content">
+          <div class="empty-state" id="live-empty-state">
+            <div class="icon">📡</div>
+            <div>Aucune vérification pour le moment.</div>
+          </div>
+
+          <div id="live-list-section" hidden>
+            <div class="toolbar">
+              <input type="search" id="live-search-input" placeholder="Rechercher un projet..." />
+              <select id="live-type-filter">
+                <option value="">Tous les types</option>
+                <option value="new">🆕 Nouveaux</option>
+                <option value="modified">🔄 Modifiés</option>
+                <option value="removed">❌ Disparus</option>
+                <option value="reactivated">🟢 Réapparus</option>
+              </select>
+            </div>
+            <div class="result-count" id="live-result-count"></div>
+            <div class="event-list" id="live-event-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ONGLET IMPORT ================= -->
+      <section id="tab-import" class="tab-panel" hidden>
+        <div class="card" id="load-card">
+          <strong>Charger un export</strong>
+          <div class="subtitle">
+            Depuis FAH Project Monitor (sur ton PC) : Historique → Export
+            JSON ou Export CSV, puis envoie-toi le fichier et ouvre-le ici.
+          </div>
+          <div class="file-row">
+            <button class="btn" id="pick-file">📂 Choisir un fichier</button>
+            <button class="btn secondary" id="clear-data">🗑 Effacer</button>
+          </div>
+          <input type="file" id="file-input" accept=".json,.csv,application/json,text/csv" />
+          <div class="subtitle" id="source-label">Aucun fichier chargé</div>
+        </div>
+
+        <div id="stats-card" class="card" hidden>
+          <strong>Résumé</strong>
+          <div class="stats-grid" id="stats-grid"></div>
+        </div>
+
+        <div id="content">
+          <div class="empty-state" id="empty-state">
+            <div class="icon">📭</div>
+            <div>Aucune donnée pour le moment.</div>
+          </div>
+
+          <div id="list-section" hidden>
+            <div class="toolbar">
+              <input type="search" id="search-input" placeholder="Rechercher un projet..." />
+              <select id="type-filter">
+                <option value="">Tous les types</option>
+                <option value="new">🆕 Nouveaux</option>
+                <option value="modified">🔄 Modifiés</option>
+                <option value="removed">❌ Disparus</option>
+                <option value="reactivated">🟢 Réapparus</option>
+              </select>
+            </div>
+            <div class="result-count" id="result-count"></div>
+            <div class="event-list" id="event-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="detail-dialog">
+    <div class="dialog-body" id="detail-body"></div>
+    <div class="dialog-actions">
+      <button class="btn secondary" id="detail-close">Fermer</button>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
