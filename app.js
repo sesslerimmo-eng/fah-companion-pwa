@@ -45,6 +45,15 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
   });
 });
 
+document.querySelectorAll(".sub-tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".sub-tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".sub-panel").forEach((p) => (p.hidden = true));
+    btn.classList.add("active");
+    document.getElementById(`live-${btn.dataset.subtab}-panel`).hidden = false;
+  });
+});
+
 // ============================================================================
 // Constantes communes (alignées sur FAH Project Monitor)
 // ============================================================================
@@ -561,6 +570,76 @@ liveSettingsBtn.addEventListener("click", () => {
   liveSettingsCard.hidden = !liveSettingsCard.hidden;
 });
 
+// ------------------------------------------------------------------------
+// Liste "Projets actifs" : toujours la liste complète du dernier instantané
+// connu, indépendamment des changements détectés. C'est elle qui répond à
+// « pourquoi je ne vois rien la première fois ? » — les changements, eux,
+// n'existent qu'à partir de la 2e vérification.
+// ------------------------------------------------------------------------
+
+const liveProjectsEmpty = document.getElementById("live-projects-empty");
+const liveProjectsSection = document.getElementById("live-projects-section");
+const liveProjectsList = document.getElementById("live-projects-list");
+const liveProjectsCount = document.getElementById("live-projects-count");
+const liveProjectsSearch = document.getElementById("live-projects-search");
+
+let lastKnownProjects = {};
+
+function renderProjectList() {
+  const ids = Object.keys(lastKnownProjects);
+
+  if (ids.length === 0) {
+    liveProjectsEmpty.hidden = false;
+    liveProjectsSection.hidden = true;
+    return;
+  }
+
+  liveProjectsEmpty.hidden = true;
+  liveProjectsSection.hidden = false;
+
+  const query = liveProjectsSearch.value.trim().toLowerCase();
+
+  const sortedIds = [...ids].sort((a, b) =>
+    /^\d+$/.test(a) && /^\d+$/.test(b) ? Number(a) - Number(b) : a.localeCompare(b)
+  );
+
+  const summaries = sortedIds.map((id) => ({
+    id,
+    text: projectSummary(lastKnownProjects[id], id),
+  }));
+
+  const filtered = query
+    ? summaries.filter((p) => p.text.toLowerCase().includes(query))
+    : summaries;
+
+  liveProjectsCount.textContent = `${filtered.length} / ${ids.length} projet(s)`;
+
+  const fragment = document.createDocumentFragment();
+
+  filtered.slice(0, 500).forEach((p) => {
+    const item = document.createElement("div");
+    item.className = "project-item";
+    item.textContent = p.text;
+    item.addEventListener("click", () =>
+      showDetail({
+        event_type: "info",
+        detected_at: "",
+        project_id: p.id,
+        project: lastKnownProjects[p.id],
+        changes: null,
+      })
+    );
+    fragment.appendChild(item);
+  });
+
+  liveProjectsList.innerHTML = "";
+  liveProjectsList.appendChild(fragment);
+}
+
+liveProjectsSearch.addEventListener("input", renderProjectList);
+
+EVENT_LABELS.info = "ℹ️ Projet";
+
 document.getElementById("live-servers-save").addEventListener("click", () => {
   try {
     const servers = validServerList(liveServersInput.value);
@@ -701,9 +780,12 @@ async function runLiveCheck(auto = false) {
     const missingCounts = loadJson("fah-companion-live-missing", {});
 
     if (!known) {
-      // Première vérification : pas de comparaison possible.
+      // Première vérification : pas de comparaison possible, mais la liste
+      // complète des projets actifs est déjà consultable.
       saveJson("fah-companion-live-known", current);
       saveJson("fah-companion-live-missing", {});
+      lastKnownProjects = current;
+      renderProjectList();
       setLiveStatus(
         `Initialisé : ${projectCount} projets`,
         `Dernière vérification : ${formatDate(new Date().toISOString())}`,
@@ -733,6 +815,8 @@ async function runLiveCheck(auto = false) {
 
     saveJson("fah-companion-live-known", nextKnown);
     saveJson("fah-companion-live-missing", pendingMissing);
+    lastKnownProjects = nextKnown;
+    renderProjectList();
 
     if (events.length > 0) {
       const history = [...events, ...loadJson("fah-companion-live-events", [])].slice(
@@ -789,6 +873,8 @@ notifPermissionBtn.addEventListener("click", async () => {
 
   const known = loadJson("fah-companion-live-known", null);
   if (known) {
+    lastKnownProjects = known;
+    renderProjectList();
     setLiveStatus(`${Object.keys(known).length} projets connus`, "Touche « Vérifier » pour mettre à jour.", "ok");
   }
 

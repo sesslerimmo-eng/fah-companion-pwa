@@ -80,25 +80,59 @@
           <div class="stats-grid" id="live-stats-grid"></div>
         </div>
 
-        <div id="live-content">
-          <div class="empty-state" id="live-empty-state">
+        <div class="sub-tabs">
+          <button class="sub-tab-btn active" data-subtab="projects">📋 Projets actifs</button>
+          <button class="sub-tab-btn" data-subtab="changes">🔄 Changements</button>
+        </div>
+
+        <!-- Liste complète des projets actuellement actifs (toujours dispo,
+             même si aucun changement n'a encore été détecté). -->
+        <div id="live-projects-panel" class="sub-panel">
+          <div class="empty-state" id="live-projects-empty">
             <div class="icon">📡</div>
             <div>Aucune vérification pour le moment.</div>
+            <div style="font-size: 0.8rem; margin-top: 4px;">
+              Touche « Vérifier maintenant » ci-dessus.
+            </div>
           </div>
 
-          <div id="live-list-section" hidden>
+          <div id="live-projects-section" hidden>
             <div class="toolbar">
-              <input type="search" id="live-search-input" placeholder="Rechercher un projet..." />
-              <select id="live-type-filter">
-                <option value="">Tous les types</option>
-                <option value="new">🆕 Nouveaux</option>
-                <option value="modified">🔄 Modifiés</option>
-                <option value="removed">❌ Disparus</option>
-                <option value="reactivated">🟢 Réapparus</option>
-              </select>
+              <input type="search" id="live-projects-search" placeholder="Rechercher un projet..." />
             </div>
-            <div class="result-count" id="live-result-count"></div>
-            <div class="event-list" id="live-event-list"></div>
+            <div class="result-count" id="live-projects-count"></div>
+            <div class="event-list" id="live-projects-list"></div>
+          </div>
+        </div>
+
+        <!-- Historique des changements détectés entre deux vérifications. -->
+        <div id="live-changes-panel" class="sub-panel" hidden>
+          <div id="live-content">
+            <div class="empty-state" id="live-empty-state">
+              <div class="icon">🔄</div>
+              <div>Aucun changement détecté pour le moment.</div>
+              <div style="font-size: 0.8rem; margin-top: 4px;">
+                Normal après la toute première vérification : il faut un
+                deuxième passage pour comparer. Regarde l'onglet
+                « Projets actifs » pour voir la liste complète dès
+                maintenant.
+              </div>
+            </div>
+
+            <div id="live-list-section" hidden>
+              <div class="toolbar">
+                <input type="search" id="live-search-input" placeholder="Rechercher un projet..." />
+                <select id="live-type-filter">
+                  <option value="">Tous les types</option>
+                  <option value="new">🆕 Nouveaux</option>
+                  <option value="modified">🔄 Modifiés</option>
+                  <option value="removed">❌ Disparus</option>
+                  <option value="reactivated">🟢 Réapparus</option>
+                </select>
+              </div>
+              <div class="result-count" id="live-result-count"></div>
+              <div class="event-list" id="live-event-list"></div>
+            </div>
           </div>
         </div>
       </section>
