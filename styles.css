@@ -129,6 +129,25 @@ header .subtitle {
   cursor: pointer;
 }
 
+.project-item.new-project {
+  border-color: var(--green);
+  border-width: 2px;
+  background: var(--new-bg);
+}
+
+.new-badge {
+  display: inline-block;
+  background: var(--green);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
 .live-status-row {
   display: flex;
   align-items: center;

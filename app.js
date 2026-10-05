@@ -585,6 +585,11 @@ const liveProjectsSearch = document.getElementById("live-projects-search");
 
 let lastKnownProjects = {};
 
+// Identifiants des projets détectés "Nouveau" lors de la dernière
+// vérification qui en a trouvé : surlignés dans la liste "Projets actifs"
+// jusqu'à la vérification suivante.
+let latestNewIds = new Set();
+
 function renderProjectList() {
   const ids = Object.keys(lastKnownProjects);
 
@@ -617,9 +622,20 @@ function renderProjectList() {
   const fragment = document.createDocumentFragment();
 
   filtered.slice(0, 500).forEach((p) => {
+    const isNew = latestNewIds.has(p.id);
+
     const item = document.createElement("div");
-    item.className = "project-item";
-    item.textContent = p.text;
+    item.className = isNew ? "project-item new-project" : "project-item";
+
+    if (isNew) {
+      const badge = document.createElement("span");
+      badge.className = "new-badge";
+      badge.textContent = "🆕 NOUVEAU";
+      item.appendChild(badge);
+    }
+
+    item.appendChild(document.createTextNode(p.text));
+
     item.addEventListener("click", () =>
       showDetail({
         event_type: "info",
@@ -816,6 +832,12 @@ async function runLiveCheck(auto = false) {
     saveJson("fah-companion-live-known", nextKnown);
     saveJson("fah-companion-live-missing", pendingMissing);
     lastKnownProjects = nextKnown;
+
+    latestNewIds = new Set(
+      events.filter((e) => e.event_type === "new").map((e) => e.project_id)
+    );
+    saveJson("fah-companion-live-new-ids", [...latestNewIds]);
+
     renderProjectList();
 
     if (events.length > 0) {
@@ -870,6 +892,8 @@ notifPermissionBtn.addEventListener("click", async () => {
 (function initLive() {
   const history = loadJson("fah-companion-live-events", []);
   liveController.setEvents(history);
+
+  latestNewIds = new Set(loadJson("fah-companion-live-new-ids", []));
 
   const known = loadJson("fah-companion-live-known", null);
   if (known) {
